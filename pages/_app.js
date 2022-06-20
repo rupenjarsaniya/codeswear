@@ -2,20 +2,50 @@ import '../styles/globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function MyApp({ Component, pageProps }) {
+  const router = useRouter();
   const [cart, setCart] = useState({});
   const [subtotal, setSubtotal] = useState(0);
+  const [user, setUser] = useState({ value: null });
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
     try {
       let myCart = localStorage.getItem('cart');
-      if (myCart) setCart(JSON.parse(myCart));
+      if (myCart) {
+        setCart(JSON.parse(myCart));
+        saveCart(JSON.parse(myCart));
+      }
     } catch (error) {
       console.error(error);
       localStorage.clear();
     }
-  }, [])
+
+    const token = localStorage.getItem("token");
+    if (token) {
+      setUser({ value: token });
+      setKey(Math.random());
+    }
+  }, [router.query])
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser({ value: null });
+    setKey(Math.random());
+    toast.success('Logout Successful', {
+      position: "bottom-left",
+      autoClose: 1000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 
   const saveCart = (myCart) => {
     localStorage.setItem("cart", JSON.stringify(myCart));
@@ -41,6 +71,13 @@ function MyApp({ Component, pageProps }) {
     saveCart(newCart);
   }
 
+  const buyNow = (itemCode, qty, price, name, size, variant) => {
+    let newCart = { itemCode: { qty, price, name, size, variant } };
+    setCart(newCart);
+    saveCart(newCart);
+    router.push("/checkout");
+  }
+
   const removeFromCart = (itemCode, qty) => {
     let oldCart = cart;
     if (itemCode in oldCart) {
@@ -59,8 +96,19 @@ function MyApp({ Component, pageProps }) {
   }
 
   return <>
-    <Navbar cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} clearCart={clearCart} subtotal={subtotal} />
-    <Component cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} clearCart={clearCart} subtotal={subtotal} {...pageProps} />
+    <ToastContainer
+      position="bottom-left"
+      autoClose={3000}
+      hideProgressBar
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+    />
+    <Navbar key={key} user={user} logout={logout} cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} clearCart={clearCart} subtotal={subtotal} />
+    <Component cart={cart} addToCart={addToCart} removeFromCart={removeFromCart} clearCart={clearCart} subtotal={subtotal} buyNow={buyNow} {...pageProps} />
     <Footer />
   </>
 }
