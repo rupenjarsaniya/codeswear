@@ -75,7 +75,7 @@ function MyApp({ Component, pageProps }) {
       newCart[itemCode].qty = newCart[itemCode].qty + qty;
     }
     else {
-      newCart[itemCode] = { qty: 1, price, name, size, variant };
+      newCart[itemCode] = { qty, price, name, size, variant };
     }
 
     setCart(newCart);
@@ -83,7 +83,9 @@ function MyApp({ Component, pageProps }) {
   }
 
   const buyNow = (itemCode, qty, price, name, size, variant) => {
-    let newCart = { itemCode: { qty, price, name, size, variant } };
+    console.log(itemCode);
+    let newCart = {};
+    newCart[itemCode] = { qty, price, name, size, variant };
     setCart(newCart);
     saveCart(newCart);
     router.push("/checkout");

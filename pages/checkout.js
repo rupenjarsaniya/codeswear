@@ -66,7 +66,7 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                     progress: undefined,
                 });
                 setTimeout(() => {
-                    router.push('/order');
+                    router.push(`/order?orderid=${postresjson.order._id}`);
                 }, 1000);
             }
         }
