@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,7 +10,7 @@ const Signup = () => {
     const handleChange = (e) => setData({ ...data, [e.target.name]: e.target.value });
     const handleForm = async (e) => {
         e.preventDefault();
-        const res = await fetch("http://localhost:3000/api/signup", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/signup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -45,6 +45,10 @@ const Signup = () => {
             });
         }
     }
+
+    useEffect(() => {
+        if (localStorage.getItem('token')) router.push("/");
+    }, [])
 
     return (
         <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" >

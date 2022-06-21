@@ -58,10 +58,10 @@ const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subt
                         <div onMouseOver={() => { setDropdown(true) }}>
                             <p className='bg-pink-600 rounded-md text-white py-1 px-2 hover:bg-pink-700'>Account</p>
                             {
-                                dropdown && <div onMouseLeave={() => { setDropdown(false) }} className='absolute right-9 px-2 py-2 bg-pink-100 rounded-md text-sm font-semibold w-36'>
+                                dropdown && <div onMouseLeave={() => { setDropdown(false) }} className='absolute right-9 px-4 py-2 bg-white rounded-md text-sm font-semibold w-40'>
                                     <ul>
-                                        <Link href={'/account'}><li className='py-1 cursor-pointer hover:text-pink-600'>My Account</li></Link>
-                                        <Link href={'/order'}><li className='py-1 cursor-pointer hover:text-pink-600'>Orders</li></Link>
+                                        <Link href={'/myaccount'}><li className='py-1 cursor-pointer hover:text-pink-600'>My Account</li></Link>
+                                        <Link href={'/orders'}><li className='py-1 cursor-pointer hover:text-pink-600'>Orders</li></Link>
                                         <li className='py-1 cursor-pointer hover:text-pink-600' onClick={logout}>Log out</li>
                                     </ul>
                                 </div>
@@ -71,7 +71,7 @@ const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subt
                 }
                 <a>
                     {
-                        Object.keys(cart).length != 0 && <span className='bg-red-700 text-white px-[5px] text-[12px] rounded-full absolute top-[-10px] right-[-10px]'>{Object.keys(cart).length}</span>
+                        Object.keys(cart).length != 0 && <span className='bg-red-700 text-white px-[5px] text-[12px] rounded-full absolute top-[-5px] right-[-10px]'>{Object.keys(cart).length}</span>
                     }
                     <AiOutlineShoppingCart className='text-2xl' onClick={toggleSideCart} />
                 </a>
