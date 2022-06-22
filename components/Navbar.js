@@ -102,10 +102,10 @@ const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subt
                     </ol>
                 </div>
                 <div className="flex justify-between items-center">
-                    <button className='bg-pink-500 flex item-center rounded-md justify-center py-2 px-4 text-white font-bold m-auto mr-1 mt-3 border-0 hover:bg-pink-600 focus:outline-none'>
-                        <BsFillBagCheckFill className='mt-1 mr-2' /><Link href={'/checkout'}>Checkout</Link>
-                    </button>
-                    <button onClick={clearCart} className='bg-pink-500 flex item-center rounded-md justify-center py-2 px-4 text-white font-bold m-auto mt-3 border-0 hover:bg-pink-600 focus:outline-none'>
+                    <Link href={'/checkout'}><button disabled={Object.keys(cart).length === 0} className='disabled:bg-pink-300 bg-pink-500 flex item-center rounded-md justify-center py-2 px-4 text-white font-bold m-auto mr-1 mt-3 border-0 hover:bg-pink-600 focus:outline-none'>
+                        <BsFillBagCheckFill className='mt-1 mr-2' />Checkout
+                    </button></Link>
+                    <button disabled={Object.keys(cart).length === 0} onClick={clearCart} className='disabled:bg-pink-300 bg-pink-500 flex item-center rounded-md justify-center py-2 px-4 text-white font-bold m-auto mt-3 border-0 hover:bg-pink-600 focus:outline-none'>
                         Clear Cart
                     </button>
                 </div>

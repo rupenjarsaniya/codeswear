@@ -20,6 +20,7 @@ const Signup = () => {
         const json = await res.json();
         if (json.success) {
             localStorage.setItem("token", json.token);
+            localStorage.setItem("userdata", json.userdata);
             toast.success(`${json.message}`, {
                 position: "bottom-left",
                 autoClose: 1000,
@@ -88,13 +89,6 @@ const Signup = () => {
                         <div>
                             <label htmlFor="password" className="sr-only">Password</label>
                             <input value={data.password} onChange={handleChange} id="password" name="password" type="password" autoComplete="current-password" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm" placeholder="Password" />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <input id="remember-me" name="remember-me" type="checkbox" className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded" />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900"> Remember me </label>
                         </div>
                     </div>
 

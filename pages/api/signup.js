@@ -18,14 +18,14 @@ const handler = async (req, res) => {
             const saveUser = await createUser.save();
 
             if (!saveUser) return res.status(400).json({ success: false, error: "Some error to create an account, try after sometime" });
-            return res.status(200).json({ success: true, message: "Account created successsfully", token });
+            return res.status(200).json({ success: true, message: "Account created successsfully", token, userdata: saveUser });
         }
         else {
             return res.status(400).json({ success: false, error: "This method is not allowed" });
         }
     }
     catch (error) {
-        return res.status(400).json({ error });
+        return res.status(400).json({ error: "Something went wrong" });
     }
 }
 

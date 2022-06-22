@@ -14,7 +14,7 @@ const handler = async (req, res) => {
         return res.status(200).json({ orders });
     }
     catch (error) {
-        return res.status(400).json({ error });
+        return res.status(400).json({ error: "Something went wrong" });
     }
 }
 

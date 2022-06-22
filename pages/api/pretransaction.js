@@ -2,35 +2,59 @@ const https = require('https');
 const PaytmChecksum = require('paytmchecksum');
 import connectDb from '../../middleware/mongoose';
 import Order from '../../models/Order';
+import Product from '../../models/Product';
 const jwt = require('jsonwebtoken');
 
 const handler = async (req, res) => {
     try {
         if (req.method === "POST") {
-            try {
-                // Store Order
-                const user = jwt.verify(req.headers.token, process.env.JWT_SECRETKEY);
-                if (!user) return res.status(500).json({ success: false, error: "User not valid" });
 
-                const order = new Order({
-                    userId: user.id,
-                    name: req.body.name,
-                    email: req.body.email,
-                    pincode: req.body.pincode,
-                    phone: req.body.phone,
-                    orderId: req.body.oid,
-                    products: req.body.cart,
-                    address: req.body.address,
-                    amount: req.body.subtotal
-                });
+            if (req.body.subtotal <= 0) return res.status(400).json({ success: false, error: "Your cart is empty!" })
 
-                const saveOrder = await order.save();
-                if (!saveOrder) return res.status(400).json({ success: false, error: "Order not placed" });
-                return res.status(200).json({ success: true, order: saveOrder });
+            // Check if cart is tampered with (if tampered then order not placed in not then order placed)
+            let cart = req.body.cart;
+            let sumtotal = 0;
+            for (let item in cart) {
+                let product = await Product.findOne({ slug: item });
+
+                if (product.availableQuantity < cart[item].qty) {
+                    return res.status(400).json({ success: false, error: "Some product in your cart out of stock" });
+                }
+
+                if (product.price !== cart[item].price) {
+                    return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again" });
+                }
+                sumtotal += cart[item].price * cart[item].qty;
             }
-            catch (error) {
-                return res.status(400).json({ success: false, error });
+            if (req.body.subtotal !== sumtotal) {
+                return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again" });
             }
+
+
+
+            // Store Order
+            const user = jwt.verify(req.headers.token, process.env.JWT_SECRETKEY);
+            if (!user) return res.status(500).json({ success: false, error: "User not valid" });
+
+            const order = new Order({
+                userId: user.id,
+                name: req.body.name,
+                email: req.body.email,
+                pincode: req.body.pincode,
+                city: req.body.city,
+                state: req.body.state,
+                phone: req.body.phone,
+                orderId: req.body.oid,
+                products: req.body.cart,
+                address: req.body.address,
+                amount: req.body.subtotal
+            });
+
+            const saveOrder = await order.save();
+            if (!saveOrder) return res.status(400).json({ success: false, error: "Some technical issue to place an order, Please try again" });
+            return res.status(200).json({ success: true, order: saveOrder });
+
+
 
             // Paytm payment gateway
             // var paytmParams = {};
@@ -90,7 +114,9 @@ const handler = async (req, res) => {
 
             //             post_res.on('end', function () {
             //                 console.log('Response: ', response);
-            //                 resolve(JSON.parse(response.body));
+            //                  let ress = JSON.parse(response).body;
+            //                  ress.success = true;
+            //                 resolve(ress);
             //             });
             //         });
 
@@ -107,7 +133,8 @@ const handler = async (req, res) => {
         }
     }
     catch (error) {
-        return res.status(400).json({ error });
+        console.log(error);
+        return res.status(400).json({ error: "Something went wrong" });
     }
 }
 

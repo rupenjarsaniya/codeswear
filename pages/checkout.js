@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AiFillPlusCircle, AiFillMinusCircle } from 'react-icons/ai';
 import Head from 'next/head';
 import Script from 'next/script';
@@ -6,20 +6,43 @@ import { useRouter } from 'next/router';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
+const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
     const router = useRouter();
-
+    // Delivery Data
     const [deliveryData, setDeliveryData] = useState({
         name: "", email: "", address: "", phone: "", pincode: "", city: "", state: ""
     });
 
-    const handleDeliveryDetail = (e) => setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
+    const [userData, setUserData] = useState({});
+
+    const handleDeliveryDetail = async (e) => {
+        if (e.target.name === "pincode") {
+            setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
+            if (e.target.value.length === 6) {
+                const pincodes = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`);
+                const pincodesJson = await pincodes.json();
+                if (Object.keys(pincodesJson.pincodes).includes(e.target.value)) {
+                    deliveryData.city = pincodesJson.pincodes[e.target.value][0];
+                    deliveryData.state = pincodesJson.pincodes[e.target.value][1];
+                }
+            }
+            else {
+                deliveryData.city = "";
+                deliveryData.state = "";
+            }
+        }
+        setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
+    }
+
+
+    // Pincode
 
     // Paytm payment gateway
     const initiatePayment = async () => {
         const token = localStorage.getItem('token');
         let oid = Math.floor(Math.random() * Date.now());
-        const data = { cart, subtotal, oid, email: deliveryData.email, name: deliveryData.name, address: deliveryData.address, phone: deliveryData.phone, pincode: deliveryData.pincode };
+        console.log(deliveryData);
+        const data = { cart, subtotal, oid, email: deliveryData.email, name: deliveryData.name, address: deliveryData.address, phone: deliveryData.phone, pincode: deliveryData.pincode, city: deliveryData.city, state: deliveryData.state };
 
         // Get a transaction token
         const preres = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pretransaction`, {
@@ -33,7 +56,7 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
         const preresjson = await preres.json();
         // const txnToken = preresjson.txnToken;
         if (!preresjson.success) {
-            toast.error(`${preresjson.error}`, {
+            toast.error(preresjson.error, {
                 position: "bottom-left",
                 autoClose: 2000,
                 hideProgressBar: true,
@@ -42,9 +65,10 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                 draggable: true,
                 progress: undefined,
             });
+            await clearCart();
         }
 
-        if (preresjson.success) {
+        else {
             // This function is called automation on pretransaction callback when paytm payment done
             const postres = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/posttransaction`, {
                 method: "POST",
@@ -52,9 +76,10 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                     "Content-Type": "application/json",
                     "token": token
                 },
-                body: JSON.stringify(preresjson.order._id)
+                body: JSON.stringify(preresjson.order)
             });
             const postresjson = await postres.json();
+            console.log(postresjson);
             if (postresjson.success) {
                 toast.success('Order Placed', {
                     position: "bottom-left",
@@ -68,6 +93,17 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                 setTimeout(() => {
                     router.push(`/order?orderid=${postresjson.order._id}`);
                 }, 1000);
+            }
+            else {
+                toast.error(preresjson.error, {
+                    position: "bottom-left",
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                });
             }
         }
 
@@ -103,6 +139,19 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
         // }
     }
 
+    useEffect(() => {
+        if (!localStorage.getItem('token')) {
+            router.push('/');
+        }
+        else {
+            let userdata = JSON.parse(localStorage.getItem('userdata'));
+            if (userdata) {
+                setUserData(userdata);
+                deliveryData.email = userdata.email;
+            }
+        }
+    }, [])
+
     return (
         <div className='container px-3 sm:px-40'>
             <ToastContainer
@@ -135,7 +184,11 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="email" className="leading-7 text-sm text-gray-600">Email</label>
-                        <input type="text" onChange={handleDeliveryDetail} value={deliveryData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        {
+                            userData
+                                ? <input type="text" value={userData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly disabled />
+                                : <input type="text" onChange={handleDeliveryDetail} value={deliveryData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        }
                     </div>
                 </div>
             </div>
@@ -157,7 +210,7 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="pincode" className="leading-7 text-sm text-gray-600">Pincode</label>
-                        <input type="number" onChange={handleDeliveryDetail} value={deliveryData.pincode} id="name" name="pincode" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" minLength={6} maxLength={6} />
+                        <input type="number" onChange={handleDeliveryDetail} value={deliveryData.pincode} id="name" name="pincode" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" maxLength={6} />
                     </div>
                 </div>
             </div>
@@ -166,13 +219,13 @@ const Checkout = ({ cart, addToCart, removeFromCart, subtotal }) => {
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
-                        <input type="text" id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input type="text" onChange={handleDeliveryDetail} value={deliveryData.city} id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="state" className="leading-7 text-sm text-gray-600">State</label>
-                        <input type="text" id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
+                        <input type="text" onChange={handleDeliveryDetail} value={deliveryData.state} id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
                     </div>
                 </div>
             </div>

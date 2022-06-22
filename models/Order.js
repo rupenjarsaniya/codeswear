@@ -23,6 +23,14 @@ const orderSchema = mongoose.Schema({
         maxlength: [6, "Pincode not more than 6 characters"],
         required: true,
     },
+    city: {
+        type: String,
+        required: true,
+    },
+    state: {
+        type: String,
+        required: true,
+    },
     phone: {
         type: String,
         minlength: [10, "Phone Number must have 10 characters"],
@@ -52,6 +60,11 @@ const orderSchema = mongoose.Schema({
     status: {
         type: String,
         default: 'Pending',
+        required: true
+    },
+    deliverystatus: {
+        type: String,
+        default: 'Unshipped',
         required: true
     }
 }, { timestamps: true });

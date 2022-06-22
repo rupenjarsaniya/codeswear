@@ -1,3 +1,8 @@
 export default function handler(req, res) {
-    res.status(200).json([382418, 530068, 411002, 500001]);
+    const pincodes = {
+        "382418": ["Ahmedabad", "Gujarat"],
+        "721302": ["Kharagpur", "Weat Bengal"],
+        "560017": ["Banglore", "Karnataka"]
+    }
+    res.status(200).json({ pincodes });
 }

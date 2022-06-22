@@ -40,8 +40,8 @@ const MyOrder = ({ order }) => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {Object.keys(product).map((item) => {
-                                                    return <tr key={product[item]._id} className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
+                                                {Object.keys(product).map((item, index) => {
+                                                    return <tr key={index + 1} className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
                                                         <td className="text-sm text-gray-900 px-6 py-2 whitespace-nowrap">
                                                             {product[item].name}
                                                         </td>

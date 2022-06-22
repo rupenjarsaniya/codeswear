@@ -44,6 +44,7 @@ function MyApp({ Component, pageProps }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userdata");
     setUser({ value: null });
     setKey(Math.random());
     toast.success('Logout Successful', {
