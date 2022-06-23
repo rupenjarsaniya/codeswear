@@ -1,15 +1,18 @@
-const https = require('https');
-const PaytmChecksum = require('paytmchecksum');
+// const https = require('https');
+// const PaytmChecksum = require('paytmchecksum');
 import connectDb from '../../middleware/mongoose';
 import Order from '../../models/Order';
 import Product from '../../models/Product';
+import pincodes from "../../pincodes.json";
 const jwt = require('jsonwebtoken');
 
 const handler = async (req, res) => {
     try {
         if (req.method === "POST") {
 
-            if (req.body.subtotal <= 0) return res.status(400).json({ success: false, error: "Your cart is empty!" })
+            if (!Object.keys(pincodes).includes(req.body.pincode)) return res.status(400).json({ success: false, error: "Pincode is not serviceable", clearCart: false });
+
+            if (req.body.subtotal <= 0) return res.status(400).json({ success: false, error: "Your cart is empty!", clearCart: false })
 
             // Check if cart is tampered with (if tampered then order not placed in not then order placed)
             let cart = req.body.cart;
@@ -18,16 +21,16 @@ const handler = async (req, res) => {
                 let product = await Product.findOne({ slug: item });
 
                 if (product.availableQuantity < cart[item].qty) {
-                    return res.status(400).json({ success: false, error: "Some product in your cart out of stock" });
+                    return res.status(400).json({ success: false, error: "Some product in your cart out of stock", clearCart: false });
                 }
 
                 if (product.price !== cart[item].price) {
-                    return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again" });
+                    return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again", clearCart: true });
                 }
                 sumtotal += cart[item].price * cart[item].qty;
             }
             if (req.body.subtotal !== sumtotal) {
-                return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again" });
+                return res.status(400).json({ success: false, error: "There is some changes occured in cart, please try again", clearCart: true });
             }
 
 
@@ -116,6 +119,7 @@ const handler = async (req, res) => {
             //                 console.log('Response: ', response);
             //                  let ress = JSON.parse(response).body;
             //                  ress.success = true;
+            //                  ress.clearCart = true;
             //                 resolve(ress);
             //             });
             //         });

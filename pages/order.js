@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import mongoose from 'mongoose';
 import Order from '../models/Order';
@@ -19,6 +19,7 @@ const MyOrder = ({ order }) => {
                         <h2 className="text-sm title-font text-gray-500 tracking-widest mb-2">CODESWEAR.COM</h2>
                         <h1 className="text-gray-900 text-2xl title-font font-medium mb-4">Order ID: #{order.orderId}</h1>
                         <p className="leading-relaxed text-sm">Your order has been placed</p>
+                        <p className="leading-relaxed text-sm">Order placed on: {new Date(order.createdAt).toLocaleString()}</p>
                         <p className="leading-relaxed mb-2 text-sm">Payment status is: <span className='text-pink-600 text-semibold'>{order.status}</span></p>
                         <p className="leading-relaxed text-sm font-bold">Items({Object.keys(product).length})</p>
                         <div className="flex flex-col">
@@ -37,6 +38,9 @@ const MyOrder = ({ order }) => {
                                                     <th scope="col" className="text-sm font-semibold text-gray-900 px-6 py-2 text-left">
                                                         Price
                                                     </th>
+                                                    <th scope="col" className="text-sm font-semibold text-gray-900 px-6 py-2 text-left">
+                                                        Total
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -50,6 +54,9 @@ const MyOrder = ({ order }) => {
                                                         </td>
                                                         <td className="text-sm text-gray-900 px-6 py-2 whitespace-nowrap">
                                                             ₹{product[item].price}
+                                                        </td>
+                                                        <td className="text-sm text-gray-900 px-6 py-2 whitespace-nowrap">
+                                                            ₹{product[item].price * product[item].qty}
                                                         </td>
                                                     </tr>
                                                 })

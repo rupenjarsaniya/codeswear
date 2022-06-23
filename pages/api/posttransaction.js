@@ -2,9 +2,33 @@
 
 import Order from "../../models/Order";
 import Product from "../../models/Product";
+// import PaytmChecksum from "paytmchecksum";
 
 export default async function handler(req, res) {
     try {
+
+        // Paytm Checksum
+        // var paytmChecksum = "";
+        // var paytmParams = {};
+        // const received_data = req.body;
+        // for (let key in received_data) {
+        //     if (key === 'CHECKSUMHASH') {
+        //         paytmChecksum = received_data[key];
+        //     }
+        //     else {
+        //         paytmChecksum[key] = received_data[key];
+        //     }
+        // }
+        // var isValidChecksum = PaytmChecksum.verifySignature(paytmParams, process.env.PAYTM_MKEY, paytmChecksum);
+        // if (!isValidChecksum) {
+        //     console.log("Checksum Matched");
+        //     return res.status(500).json({ error: "Some error occured" });
+        // }
+
+
+
+
+
         // Change order's status
         // const order = await Order.findByIdAndUpdate({orderId: req.body.ORDERID}, { status: "Paid" }); //when pretransaction call this api
         const order = await Order.findByIdAndUpdate(req.body._id, { status: "Paid" });

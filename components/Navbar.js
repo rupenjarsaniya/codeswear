@@ -9,20 +9,22 @@ import { useRef } from 'react';
 const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subtotal }) => {
     const sideCart = useRef();
     const [dropdown, setDropdown] = useState(false);
+    const [sidebar, setSidebar] = useState(false);
 
     const toggleSideCart = () => {
-        if (sideCart.current.classList.contains('translate-x-full')) {
-            sideCart.current.classList.remove('translate-x-full');
-            sideCart.current.classList.add('translate-x-0');
-        }
-        else {
-            sideCart.current.classList.remove('translate-x-0');
-            sideCart.current.classList.add('translate-x-full');
-        }
+        setSidebar(!sidebar);
+        // if (sideCart.current.classList.contains('translate-x-full')) {
+        //     sideCart.current.classList.remove('translate-x-full');
+        //     sideCart.current.classList.add('translate-x-0');
+        // }
+        // else {
+        //     sideCart.current.classList.remove('translate-x-0');
+        //     sideCart.current.classList.add('translate-x-full');
+        // }
     }
 
     return (
-        <div className="flex flex-col md:flex-row md:justify-start justify-center items-center sticky top-0 bg-white z-10 shadow-md py-2">
+        <div className={`flex flex-col md:flex-row md:justify-start justify-center items-center sticky top-0 bg-white z-10 shadow-md py-2`}>
             <div className='logo mr-auto md:mx-5'>
                 <Link href={'/'}>
                     <a>
@@ -58,7 +60,7 @@ const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subt
                         <div onMouseOver={() => { setDropdown(true) }}>
                             <p className='bg-pink-600 rounded-md text-white py-1 px-2 hover:bg-pink-700'>Account</p>
                             {
-                                dropdown && <div onMouseLeave={() => { setDropdown(false) }} className='absolute right-9 px-4 py-2 bg-white rounded-md text-sm font-semibold w-40'>
+                                dropdown && <div onMouseLeave={() => { setDropdown(false) }} className='absolute right-9 px-4 py-2 bg-white rounded-md text-sm font-semibold w-40 z-20'>
                                     <ul>
                                         <Link href={'/myaccount'}><li className='py-1 cursor-pointer hover:text-pink-600'>My Account</li></Link>
                                         <Link href={'/orders'}><li className='py-1 cursor-pointer hover:text-pink-600'>Orders</li></Link>
@@ -79,7 +81,7 @@ const Navbar = ({ user, logout, cart, addToCart, removeFromCart, clearCart, subt
 
             {/* Sidebar */}
 
-            <div ref={sideCart} className="sidecart bg-pink-100 overflow-y-scroll absolute top-0 right-0 z-20 px-10 py-5 w-[335px] h-[100vh] translate-x-full transform transition-transform">
+            <div ref={sideCart} className={`sidecart bg-pink-100 overflow-y-scroll absolute top-0 ${sidebar ? 'right-0' : "-right-96"} px-10 py-5 w-[335px] h-[100vh] transition-all z-30`}>
                 <h2 className='font-bold text-xl text-center mt-5'>Your Cart</h2>
                 <GrClose className='absolute right-4 top-4 text-pink-500 cursor-pointer text-xl' onClick={toggleSideCart} />
                 <div className="flex">

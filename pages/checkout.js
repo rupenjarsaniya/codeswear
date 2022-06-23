@@ -21,9 +21,9 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
             if (e.target.value.length === 6) {
                 const pincodes = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`);
                 const pincodesJson = await pincodes.json();
-                if (Object.keys(pincodesJson.pincodes).includes(e.target.value)) {
-                    deliveryData.city = pincodesJson.pincodes[e.target.value][0];
-                    deliveryData.state = pincodesJson.pincodes[e.target.value][1];
+                if (Object.keys(pincodesJson).includes(e.target.value)) {
+                    deliveryData.city = pincodesJson[e.target.value][0];
+                    deliveryData.state = pincodesJson[e.target.value][1];
                 }
             }
             else {
@@ -65,7 +65,9 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
                 draggable: true,
                 progress: undefined,
             });
-            await clearCart();
+            if (preresjson.clearCart) {
+                await clearCart();
+            }
         }
 
         else {
@@ -79,8 +81,8 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
                 body: JSON.stringify(preresjson.order)
             });
             const postresjson = await postres.json();
-            console.log(postresjson);
             if (postresjson.success) {
+                await clearCart();
                 toast.success('Order Placed', {
                     position: "bottom-left",
                     autoClose: 1000,
@@ -141,7 +143,7 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
 
     useEffect(() => {
         if (!localStorage.getItem('token')) {
-            router.push('/');
+            router.push('/login');
         }
         else {
             let userdata = JSON.parse(localStorage.getItem('userdata'));
