@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { AiFillPlusCircle, AiFillMinusCircle } from 'react-icons/ai';
 import Head from 'next/head';
 import Script from 'next/script';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,37 +13,36 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
     const [deliveryData, setDeliveryData] = useState({
         name: "", email: "", address: "", phone: "", pincode: "", city: "", state: ""
     });
-
-    const [userData, setUserData] = useState({});
-
-    const handleDeliveryDetail = async (e) => {
-        if (e.target.name === "pincode") {
-            setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
-            if (e.target.value.length === 6) {
-                const pincodes = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`);
-                const pincodesJson = await pincodes.json();
-                if (Object.keys(pincodesJson).includes(e.target.value)) {
-                    deliveryData.city = pincodesJson[e.target.value][0];
-                    deliveryData.state = pincodesJson[e.target.value][1];
-                }
-            }
-            else {
-                deliveryData.city = "";
-                deliveryData.state = "";
-            }
-        }
-        setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
-    }
-
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
 
     // Pincode
+    const fetchPincodeDetail = async (pin) => {
+        const pincodes = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pincode`);
+        const pincodesJson = await pincodes.json();
+        if (Object.keys(pincodesJson).includes(pin)) {
+            setCity(pincodesJson[pin][0]);
+            setState(pincodesJson[pin][1]);
+        }
+    }
+
+    const handleDeliveryDetail = async (e) => {
+        setDeliveryData({ ...deliveryData, [e.target.name]: e.target.value });
+        if (e.target.name === "pincode" && e.target.value.length === 6) {
+            // log
+            fetchPincodeDetail(e.target.value);
+        }
+        else {
+            setCity('');
+            setState('');
+        }
+    }
 
     // Paytm payment gateway
     const initiatePayment = async () => {
         const token = localStorage.getItem('token');
         let oid = Math.floor(Math.random() * Date.now());
-        console.log(deliveryData);
-        const data = { cart, subtotal, oid, email: deliveryData.email, name: deliveryData.name, address: deliveryData.address, phone: deliveryData.phone, pincode: deliveryData.pincode, city: deliveryData.city, state: deliveryData.state };
+        const data = { cart, subtotal, oid, email: deliveryData.email, name: deliveryData.name, address: deliveryData.address, phone: deliveryData.phone, pincode: deliveryData.pincode, city: city, state: state };
 
         // Get a transaction token
         const preres = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/pretransaction`, {
@@ -148,8 +148,10 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
         else {
             let userdata = JSON.parse(localStorage.getItem('userdata'));
             if (userdata) {
-                setUserData(userdata);
-                deliveryData.email = userdata.email;
+                setDeliveryData({ email: userdata.email, name: userdata.name, pincode: userdata.pincode, phone: userdata.phone, address: userdata.address });
+            }
+            if (userdata.pincode.length === 6) {
+                fetchPincodeDetail(userdata.pincode);
             }
         }
     }, [])
@@ -187,8 +189,8 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
                     <div className="relative mb-2">
                         <label htmlFor="email" className="leading-7 text-sm text-gray-600">Email</label>
                         {
-                            userData
-                                ? <input type="text" value={userData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly disabled />
+                            deliveryData
+                                ? <input type="text" value={deliveryData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" readOnly disabled />
                                 : <input type="text" onChange={handleDeliveryDetail} value={deliveryData.email} id="email" name="email" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" />
                         }
                     </div>
@@ -221,17 +223,20 @@ const Checkout = ({ clearCart, cart, addToCart, removeFromCart, subtotal }) => {
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="city" className="leading-7 text-sm text-gray-600">City</label>
-                        <input type="text" onChange={handleDeliveryDetail} value={deliveryData.city} id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
+                        <input type="text" onChange={handleDeliveryDetail} value={city} id="city" name="city" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
                     </div>
                 </div>
                 <div className="px-2 w-1/2">
                     <div className="relative mb-2">
                         <label htmlFor="state" className="leading-7 text-sm text-gray-600">State</label>
-                        <input type="text" onChange={handleDeliveryDetail} value={deliveryData.state} id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
+                        <input type="text" onChange={handleDeliveryDetail} value={state} id="state" name="state" className="w-full bg-white rounded border border-gray-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out" disabled={true} readOnly={true} />
                     </div>
                 </div>
             </div>
-
+            {console.log(deliveryData.phone === "" || deliveryData.pincode === "" || deliveryData.address === "")}
+            {
+                deliveryData.phone === "" || deliveryData.pincode === "" || deliveryData.address === "" ? <Link href={'/myaccount'}><div className='text-sm text-pink-600 mx-2 my-3 underline cursor-pointer text-right'>Profile Update Here!</div></Link> : ''
+            }
 
             <h2 className="font-bold my-8 text-gray-600">2. Review Cart Items & Pay</h2>
 

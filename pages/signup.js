@@ -20,7 +20,7 @@ const Signup = () => {
         const json = await res.json();
         if (json.success) {
             localStorage.setItem("token", json.token);
-            localStorage.setItem("userdata", json.userdata);
+            localStorage.setItem("userdata", JSON.stringify(json.userdata));
             toast.success(`${json.message}`, {
                 position: "bottom-left",
                 autoClose: 1000,
